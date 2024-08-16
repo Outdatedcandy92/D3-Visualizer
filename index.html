@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Visualizer</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
     <div id="visualization"></div>
-    <audio id="audio" controls></audio>
-    <input type="file" id="audioFileInput" accept="audio/*">
+    <div class="controls">
+        <audio id="audio" controls></audio>
+        <input type="file" id="audioFileInput" accept="audio/*">
+        <select id="visualizerType">
+            <option value="circle">Circle</option>
+            <option value="spikes">Spikes</option>
+            <option value="bars">Bars</option>
+            <option value="lines">Lines</option>
+        </select>
+    </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="script.js"></script>
+    <script src="src/script.js"></script>
 </body>
 </html>

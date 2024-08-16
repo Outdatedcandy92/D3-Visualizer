@@ -3,15 +3,36 @@ document.getElementById('audioFileInput').addEventListener('change', function(ev
     const file = event.target.files[0];
     const url = URL.createObjectURL(file);
     audio.src = url;
-    visualizeAudioWithCircle(audio);
+    updateVisualizer(audio);
 });
 
-// document.addEventListener('DOMContentLoaded', function() {
-//     const audio = document.getElementById('audio');
-//  const url = './Everlong.mp3'; 
-//     audio.src = url;
-//     visualizeAudioWithCircle(audio);
-// });
+document.getElementById('visualizerType').addEventListener('change', function() {
+    const audio = document.getElementById('audio');
+    updateVisualizer(audio);
+});
+
+function updateVisualizer(audio) {
+    const visualizerType = document.getElementById('visualizerType').value;
+    d3.select('#visualization').selectAll('*').remove(); 
+    switch (visualizerType) {
+        case 'circle':
+            visualizeAudioWithCircle(audio);
+            break;
+        case 'spikes':
+            visualizeAudioWithSpikes(audio);
+            break;
+        case 'bars':
+            visualizeAudio(audio);
+            break;
+        case 'lines':
+            visualizeAudioWithLines(audio);
+            break;
+        default:
+            visualizeAudio(audio);
+            break;
+    }
+}
+
 
 
 function visualizeAudioWithCircle(audio) {
@@ -32,36 +53,39 @@ function visualizeAudioWithCircle(audio) {
     const svg = d3.select('#visualization')
         .append('svg')
         .attr('width', svgWidth)
-        .attr('height', svgHeight);
+        .attr('height', svgHeight)
+        
 
+        
+    
     const centerX = svgWidth / 2;
     const centerY = svgHeight / 2;
     const maxRadius = Math.min(svgWidth, svgHeight) / 4;
-    const minRadius = maxRadius / 12; // smol circle
-
+    const minRadius = maxRadius / 12; 
+    
     const colorScale = d3.scaleLinear()
         .domain([0, 255])
         .range(['green', 'red']);
-
+    
     const path = svg.append('path')
         .attr('fill', 'none')
         .attr('stroke', '#39d353')
         .attr('stroke-width', 2);
-
+    
     function renderFrame() {
         requestAnimationFrame(renderFrame);
         analyser.getByteFrequencyData(dataArray);
-
+    
         const avgFrequency = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
         const radius = minRadius + (avgFrequency / 255) * (maxRadius - minRadius);
-
+    
         const activeData = dataArray.filter(value => value > 0);
         const angleStep = (2 * Math.PI) / activeData.length;
+    
 
-  
         const customOrder = [];
         let mid = Math.floor(activeData.length / 2);
-        customOrder.push(0);
+        customOrder.push(0); 
         for (let i = 1; i < activeData.length; i++) {
             if (i % 2 === 1) {
                 customOrder.push(Math.floor(i / 2) + 1); 
@@ -69,22 +93,23 @@ function visualizeAudioWithCircle(audio) {
                 customOrder.push(mid - Math.floor(i / 2)); 
             }
         }
-
+    
         let pathData = '';
         customOrder.forEach((index, i) => {
             const d = activeData[index];
-            const angle = i * angleStep;
-            const spikeRadius = radius + (d / 255) * maxRadius / 1;
+            const angle = i * angleStep - Math.PI / 2; 
+            let spikeRadius = radius + (d / 255) * maxRadius / 1;
+            spikeRadius = Math.min(spikeRadius, maxRadius * 1.5);
             const x = centerX + spikeRadius * Math.cos(angle);
             const y = centerY + spikeRadius * Math.sin(angle);
             pathData += (i === 0 ? 'M' : 'L') + x + ',' + y;
         });
         pathData += 'Z'; 
-
+    
         path.attr('d', pathData)
-            .attr('stroke', colorScale(avgFrequency)); 
+            .attr('stroke', colorScale(avgFrequency));
     }
-
+    
     audio.play();
     renderFrame();
 }
